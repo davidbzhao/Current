@@ -1,0 +1,15 @@
+<div class="item">
+	<div class="item-time">
+		<%= month %> | <%= day %>
+	</div>
+	<div class="item-content">
+		<%= content %>
+	</div>
+	<div class="item-tags">
+		<ul class="item-tags-list">
+			<% _.each(tags, function(tag){ %>
+				<li><%= tag %></li>
+			<% }) %>
+		</ul>
+	</div>
+</div>

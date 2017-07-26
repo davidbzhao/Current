@@ -2,7 +2,8 @@ define([
     'jquery',
 	'underscore',
 	'firebase',
-], function($, _, firebase){
+	'text!../../partials/item.html'
+], function($, _, firebase, ItemTemplate){
 	
 	var config = {
 		apiKey: "AIzaSyBZjK-fcZ0Q8SlgWLbnakzymQRt01cjKPE",
@@ -16,15 +17,14 @@ define([
 
 	$(document).ready(function(){
 		initializeSignInButtonListener();
+		loadItems();
 	})
 
 	function initializeSignInButtonListener(){
 		$('#signin').click(function(){
 			var provider = new firebase.auth.GoogleAuthProvider();
 			firebase.auth().signInWithPopup(provider).then(function(result) {
-				addTestItem();
-				console.log(readItems());
-				console.log('good')
+				console.log('signed in')
 			}).catch(function(error) {
 				console.log(error)
 			});
@@ -45,13 +45,27 @@ define([
 		firebase.database().ref('items/').push(newItemObj)
 	}
 
-	function readItems(){
+	function loadItems(){
 		firebase.database().ref('/items').once('value').then(function(snapshot){
 			var jsonItems = snapshot.val();
 			var itemKeys = _.keys(jsonItems);
+			var newItemTemplate = _.template(ItemTemplate);
 			for(var cnt = 0; cnt < itemKeys.length; cnt++){
-				console.log(jsonItems[itemKeys[cnt]]);
-				console.log(jsonItems[itemKeys[cnt]].body);
+				var time = new Date(jsonItems[itemKeys[cnt]].timestamp);
+				var month = time.getMonth();
+				var day = time.getDate() + 1;
+				var content = jsonItems[itemKeys[cnt]].body;
+				var tags = []
+				if(jsonItems[itemKeys[cnt]].tags !== undefined){
+					tags = _.keys(jsonItems[itemKeys[cnt]].tags);
+				}
+				var newItemHtml = newItemTemplate({
+					month: month,
+					day: day,
+					content: content,
+					tags: tags
+				});
+				$('#items').append(newItemHtml);				
 			}
 		});
 	}
