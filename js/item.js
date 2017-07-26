@@ -13,32 +13,29 @@ define([
 		messagingSenderId: "1005389711220"
 	};
 	firebase.initializeApp(config);
-	var provider = new firebase.auth.GoogleAuthProvider();
-	firebase.auth().signInWithPopup(provider).then(function(result) {
-		// This gives you a Google Access Token. You can use it to access the Google API.
-		var token = result.credential.accessToken;
-		// The signed-in user info.
-		var user = result.user;
-		// ...
-		addTestItem();
-		console.log('good')
-	}).catch(function(error) {
-		// Handle Errors here.
-		var errorCode = error.code;
-		var errorMessage = error.message;
-		// The email of the user's account used.
-		var email = error.email;
-		// The firebase.auth.AuthCredential type that was used.
-		var credential = error.credential;
-		// ...
-		console.log('bad')
-	});
+
+	$(document).ready(function(){
+		initializeSignInButtonListener();
+	})
+
+	function initializeSignInButtonListener(){
+		$('#signin').click(function(){
+			var provider = new firebase.auth.GoogleAuthProvider();
+			firebase.auth().signInWithPopup(provider).then(function(result) {
+				addTestItem();
+				console.log(readItems());
+				console.log('good')
+			}).catch(function(error) {
+				console.log(error)
+			});
+		});
+	}
 
 	function addTestItem(){
 		var newItemKey = firebase.database().ref('items/').push().key;
 		var newItemObj = {}
 		newItemObj = {
-			body: "Hello world!",
+			body: "Hello mundo!",
 			timestamp: (new Date).getTime()
 		}
 		newItemObj['tags'] = {
@@ -46,5 +43,16 @@ define([
 			'fun': true
 		}
 		firebase.database().ref('items/').push(newItemObj)
+	}
+
+	function readItems(){
+		firebase.database().ref('/items').once('value').then(function(snapshot){
+			var jsonItems = snapshot.val();
+			var itemKeys = _.keys(jsonItems);
+			for(var cnt = 0; cnt < itemKeys.length; cnt++){
+				console.log(jsonItems[itemKeys[cnt]]);
+				console.log(jsonItems[itemKeys[cnt]].body);
+			}
+		});
 	}
 });
