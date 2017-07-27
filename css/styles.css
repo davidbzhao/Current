@@ -4,6 +4,8 @@ body {
 	height: 100%;
 	margin: 0;
 	padding: 0;
+}
+html {
 	overflow-y: scroll;
 }
 
@@ -56,4 +58,31 @@ body {
 	float: right;
 	letter-spacing: 0.1rem;
 	cursor: pointer;
+}
+
+#itemAdder {
+	box-shadow: 1px 1px 4px #000;
+    margin-bottom: 5rem;
+	padding: 2rem;
+}
+.form-row {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+}
+.form-row:not(:last-child){
+	margin-bottom: 1rem;
+}
+.form-row input:not(:last-child){
+	margin-right: 1rem;
+}
+#itemAdder input {
+	padding: 0.5rem;
+}
+#itemAdder .itemAdder-date {
+	max-width: 50px;
+	text-align: center;
+}
+#itemAdder-content {
+	flex-grow: 1;
 }
