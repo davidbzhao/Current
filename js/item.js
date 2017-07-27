@@ -5,7 +5,9 @@ define([
 	'text!../../partials/item.html',
 	'text!../../partials/itemAdder.html'
 ], function($, _, firebase, ItemTemplate, ItemAdderTemplate){
-	
+	var loadedAll = false;
+	var loadingMore = false;
+
 	$(document).ready(function(){
 		initializeFirebase();
 		initializeSignInButtonListener();
@@ -40,8 +42,24 @@ define([
 		});
 	}
 
+	function initializeScrollListener(){
+		$(window).scroll(function(){
+			if($(window).scrollTop() + $(window).height() > $('.item').last().offset().top){
+				if(!loadingMore && !loadedAll){
+					loadingMore = true;
+					loadMoreItems();
+				}
+			}
+		});
+	}
+
 	function loadItems(){
-		firebase.database().ref('/items').orderByKey().once('value').then(function(snapshot){
+		firebase.database()
+				.ref('/items')
+				.orderByKey()
+				.limitToLast(40)
+				.once('value')
+				.then(function(snapshot){
 			var jsonItems = snapshot.val();
 			var itemKeys = _.keys(jsonItems);
 			for(var cnt = 0; cnt < itemKeys.length; cnt++){
@@ -55,6 +73,37 @@ define([
 				}
 				prependItem(itemKeys[cnt], month, day, content, tags);		
 			}
+			initializeScrollListener();
+		});
+	}
+
+	function loadMoreItems(){
+		firebase.database()
+				.ref('/items')
+				.orderByKey()
+				.endAt($('.item').last().data('item-id'))
+				.limitToLast(41)
+				.once('value', function(snapshot){
+			var jsonItems = snapshot.val();
+			var itemKeys = _.keys(jsonItems);
+			if(itemKeys.length <= 1){
+				loadingMore = true;
+				loadedAll = false;
+			}
+			// To length-2 to disregard the item (already in list)
+			for(var cnt = itemKeys.length - 2; cnt >= 0 ; cnt--){
+				var time = new Date(jsonItems[itemKeys[cnt]].timestamp);
+				var month = time.getMonth() + 1;
+				var day = time.getDate();
+				var content = jsonItems[itemKeys[cnt]].body;
+				var tags = []
+				if(jsonItems[itemKeys[cnt]].tags !== undefined){
+					tags = _.keys(jsonItems[itemKeys[cnt]].tags);
+				}
+				appendItem(itemKeys[cnt], month, day, content, tags);		
+			}
+			loadingMore = false;
+			loadedAll = false;
 		});
 	}
 
@@ -78,6 +127,18 @@ define([
 		}
 	}
 
+	function appendItem(itemId, month, day, content, tags){
+		var newItemTemplate = _.template(ItemTemplate);
+		var newItemHtml = newItemTemplate({
+			itemId: itemId,
+			month: month,
+			day: day,
+			content: content,
+			tags: tags
+		});
+		$('#items').append(newItemHtml);
+	}
+
 	function prependItem(itemId, month, day, content, tags){
 		var newItemTemplate = _.template(ItemTemplate);
 		var newItemHtml = newItemTemplate({
@@ -87,7 +148,7 @@ define([
 			content: content,
 			tags: tags
 		});
-		$('#items').prepend(newItemHtml);	
+		$('#items').prepend(newItemHtml);
 	}
 
 	function isNumKey(evt){
@@ -98,23 +159,20 @@ define([
 		return true;
 	}
 
-	function isCorrectLength(evt){
+	function correctLength(evt){
 		var target = $(evt.target);
 		if(target.prop('id') === 'itemAdder-year'){
-			return (target.val().length < 4) && (target.val().length >= 0)
+			target.val(target.val().substring(0,4));
 		} else if(target.prop('id') === 'itemAdder-month'){
-			return (target.val().length < 2) && (target.val().length >= 0)
+			target.val(target.val().substring(0,2));
 		} else if(target.prop('id') === 'itemAdder-day'){
-			return (target.val().length < 2) && (target.val().length >= 0)
+			target.val(target.val().substring(0,2));
 		}
 	}
 
-	function verify(evt){
-		return isNumKey(evt) && isCorrectLength(evt);
-	}
-
 	function initializeItemAdderListener(){
-		$('#main').on('keypress','.itemAdder-date', verify);
+		$('#main').on('keypress','.itemAdder-date', isNumKey);
+		$('#main').on('focusout', '.itemAdder-date', correctLength);
 		$('#main').on('change','input', function(evt){
 			$(evt.target).css('border','');
 		});
@@ -143,13 +201,16 @@ define([
 				var tags = {}
 				for(var i in submittedTags){
 					if(submittedTags[i].trim() !== ''){
-						tags[submittedTags[i].trim()] = true;
+						tags[submittedTags[i].trim().toLowerCase()] = true;
 					}
 				}
 				var curTimeHash = (new Date()).getTime();
 				saveItem(time, curTimeHash, content, tags);
 				var itemId = time + curTimeHash;
 				prependItem(itemId, submittedMonth, submittedDay, content, _.keys(tags));
+				// Clear form
+				$('#itemAdder-content').val('');
+				$('#itemAdder-tags').val('');
 			}
 		});
 	}
