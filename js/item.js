@@ -2,9 +2,10 @@ define([
     'jquery',
 	'underscore',
 	'firebase',
+	'tagging',
 	'text!../../partials/item.html',
 	'text!../../partials/itemAdder.html'
-], function($, _, firebase, ItemTemplate, ItemAdderTemplate){
+], function($, _, firebase, tagging, ItemTemplate, ItemAdderTemplate){
 	var loadedAll = false;
 	var loadingMore = false;
 
@@ -122,7 +123,8 @@ define([
 				});
 				$('#main').prepend(newItemAdderHtml);
 				$('#itemAdder-content').focus();
-				initializeItemAdderListener();
+				initializeItemAdderListeners();
+				$('#itemAdder-tags').tagging({'no-enter': true});
 			}
 		}
 	}
@@ -170,13 +172,14 @@ define([
 		}
 	}
 
-	function initializeItemAdderListener(){
-		$('#main').on('keypress','.itemAdder-date', isNumKey);
-		$('#main').on('focusout', '.itemAdder-date', correctLength);
-		$('#main').on('change','input', function(evt){
+	function initializeItemAdderListeners(){
+		$('.itemAdder-date').keypress(isNumKey);
+		$('.itemAdder-date').focusout(correctLength);
+		$('input').change(function(evt){
 			$(evt.target).css('border','');
 		});
 		$('#itemAdder-form').submit(function(e){
+			console.log('submit');
 			e.preventDefault();
 			var submitForm = true;
 			var submittedYear = parseInt($('#itemAdder-year').val());
@@ -193,7 +196,7 @@ define([
 			if(submittedContent === ''){
 				submitForm = false;
 			}
-			var submittedTags = $('#itemAdder-tags').val().split(',');
+			var submittedTags = $('#itemAdder-tags').tagging("getTags");
 			// Submit form is valid inputs
 			if(submitForm){
 				var time = submittedDate.getTime();
@@ -210,7 +213,16 @@ define([
 				prependItem(itemId, submittedMonth, submittedDay, content, _.keys(tags));
 				// Clear form
 				$('#itemAdder-content').val('');
-				$('#itemAdder-tags').val('');
+				$('#itemAdder-tags').tagging( "removeAll" );
+			}
+		});
+
+		$('#main').on('keypress', '#itemAdder-tags .type-zone', function(e){
+			console.log('keypress');
+			console.log(e);
+			var keycode = (e.which) ? e.which : e.keyCode;
+			if(keycode === 13){
+				$('#itemAdder-form').submit();
 			}
 		});
 	}

@@ -7,6 +7,7 @@ require.config({
         text: 'libs/text',
         firebase: 'https://www.gstatic.com/firebasejs/4.1.5/firebase',
         firebaseAuth: 'https://www.gstatic.com/firebasejs/4.1.5/firebase-auth',
+        tagging: 'libs/tagging'
     },
     shim: {
         'firebase': {
