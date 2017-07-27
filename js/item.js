@@ -41,10 +41,9 @@ define([
 	}
 
 	function loadItems(){
-		firebase.database().ref('/items').once('value').then(function(snapshot){
+		firebase.database().ref('/items').orderByKey().once('value').then(function(snapshot){
 			var jsonItems = snapshot.val();
 			var itemKeys = _.keys(jsonItems);
-			var newItemTemplate = _.template(ItemTemplate);
 			for(var cnt = 0; cnt < itemKeys.length; cnt++){
 				var time = new Date(jsonItems[itemKeys[cnt]].timestamp);
 				var month = time.getMonth() + 1;
@@ -54,13 +53,7 @@ define([
 				if(jsonItems[itemKeys[cnt]].tags !== undefined){
 					tags = _.keys(jsonItems[itemKeys[cnt]].tags);
 				}
-				var newItemHtml = newItemTemplate({
-					month: month,
-					day: day,
-					content: content,
-					tags: tags
-				});
-				$('#items').append(newItemHtml);				
+				prependItem(itemKeys[cnt], month, day, content, tags);		
 			}
 		});
 	}
@@ -83,6 +76,18 @@ define([
 				initializeItemAdderListener();
 			}
 		}
+	}
+
+	function prependItem(itemId, month, day, content, tags){
+		var newItemTemplate = _.template(ItemTemplate);
+		var newItemHtml = newItemTemplate({
+			itemId: itemId,
+			month: month,
+			day: day,
+			content: content,
+			tags: tags
+		});
+		$('#items').prepend(newItemHtml);	
 	}
 
 	function isNumKey(evt){
@@ -116,20 +121,22 @@ define([
 		$('#itemAdder-form').submit(function(e){
 			e.preventDefault();
 			var submitForm = true;
-			
 			var submittedYear = parseInt($('#itemAdder-year').val());
 			var submittedMonth = parseInt($('#itemAdder-month').val());
 			var submittedDay = parseInt($('#itemAdder-day').val());
 			var submittedDate = new Date(submittedYear + '/' + submittedMonth + '/' + submittedDay);
+			// Check if date is valid
 			if(isNaN(submittedDate.getTime())){
 				submitForm = false;
 				$('.itemAdder-date').css('border','solid 2px #f33');
 			}
+			// Check if content is filled
 			var submittedContent = $('#itemAdder-content').val().trim();
 			if(submittedContent === ''){
 				submitForm = false;
 			}
 			var submittedTags = $('#itemAdder-tags').val().split(',');
+			// Submit form is valid inputs
 			if(submitForm){
 				var time = submittedDate.getTime();
 				var content = submittedContent;
@@ -139,26 +146,20 @@ define([
 						tags[submittedTags[i].trim()] = true;
 					}
 				}
-
-				addItem(time, content, tags);
-				var newItemTemplate = _.template(ItemTemplate);
-				var newItemHtml = newItemTemplate({
-					month: submittedMonth,
-					day: submittedDay,
-					content: content,
-					tags: _.keys(tags)
-				});
-				$('#items').prepend(newItemHtml);
+				var curTimeHash = (new Date()).getTime();
+				saveItem(time, curTimeHash, content, tags);
+				var itemId = time + curTimeHash;
+				prependItem(itemId, submittedMonth, submittedDay, content, _.keys(tags));
 			}
 		});
 	}
 
-	function addItem(time, content, tags){
+	function saveItem(time, curTimeHash, content, tags){
 		var newItemObj = {
 			body: content,
 			timestamp: time,
 			tags: tags
 		}
-		firebase.database().ref('items/' + time).set(newItemObj);
+		firebase.database().ref('items/' + time + curTimeHash).set(newItemObj);
 	}
 });
