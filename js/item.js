@@ -47,10 +47,12 @@ define([
 
 	function initializeScrollListener(){
 		$(window).scroll(function(){
-			if($(window).scrollTop() + $(window).height() > $('.item').last().offset().top){
-				if(!loadingMore && !loadedAll){
-					loadingMore = true;
-					loadMoreItems();
+			if($('.item').last().offset() !== undefined){
+				if($(window).scrollTop() + $(window).height() > $('.item').last().offset().top){
+					if(!loadingMore && !loadedAll){
+						loadingMore = true;
+						loadMoreItems();	
+					}
 				}
 			}
 		});
