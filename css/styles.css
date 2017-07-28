@@ -63,6 +63,10 @@ html {
 	letter-spacing: 0.1rem;
 	display: inline-block;
 }
+.tag-selected {
+	background: #3c3;
+	color: #000;
+}
 
 #itemAdder {
 	box-shadow: 1px 1px 4px #000;

@@ -8,7 +8,7 @@
 	<div class="item-tags">
 		<ul class="item-tags-list">
 			<% _.each(tags, function(tag){ %>
-				<li class="tag"><%= tag %></li>
+				<li class="tag <% if(filterTags.indexOf(tag) > -1){%>tag-selected<%} %>"><%= tag %></li>
 			<% }) %>
 		</ul>
 	</div>

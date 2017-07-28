@@ -8,6 +8,7 @@ define([
 ], function($, _, firebase, tagging, ItemTemplate, ItemAdderTemplate){
 	var loadedAll = false;
 	var loadingMore = false;
+	var filterTags = [];
 
 	$(document).ready(function(){
 		initializeFirebase();
@@ -54,6 +55,23 @@ define([
 		});
 	}
 
+	function initializeFilterListener(){
+		$('.item .tag').click(function(){
+			// Toggle filter
+			var tagClicked = $(this).html();
+			var indexInFilters = filterTags.indexOf(tagClicked);
+			if(indexInFilters > -1){
+				filterTags.splice(indexInFilters, 1);
+			} else {
+				filterTags.push(tagClicked);
+			}
+			// Remove all items
+			$('#items').children().remove();
+			// Reload items with new filters
+			loadItems();
+		});
+	}
+
 	function loadItems(){
 		firebase.database()
 				.ref('/items')
@@ -72,9 +90,23 @@ define([
 				if(jsonItems[itemKeys[cnt]].tags !== undefined){
 					tags = _.keys(jsonItems[itemKeys[cnt]].tags);
 				}
-				prependItem(itemKeys[cnt], month, day, content, tags);		
+				// Filter item
+				var whitelisted = false;
+				if(_.isEmpty(filterTags)){
+					whitelisted = true;
+				} else {
+					_.each(_.keys(jsonItems[itemKeys[cnt]].tags), function(key){
+						if(filterTags.indexOf(key) > -1){
+							whitelisted = true;
+						}
+					});
+				}
+				if(whitelisted){
+					prependItem(itemKeys[cnt], month, day, content, tags);
+				}
 			}
 			initializeScrollListener();
+			initializeFilterListener();
 		});
 	}
 
@@ -148,7 +180,8 @@ define([
 			month: month,
 			day: day,
 			content: content,
-			tags: tags
+			tags: tags,
+			filterTags: filterTags
 		});
 		$('#items').prepend(newItemHtml);
 	}
