@@ -133,7 +133,20 @@ define([
 				if(jsonItems[itemKeys[cnt]].tags !== undefined){
 					tags = _.keys(jsonItems[itemKeys[cnt]].tags);
 				}
-				appendItem(itemKeys[cnt], month, day, content, tags);		
+				// Filter item
+				var whitelisted = false;
+				if(_.isEmpty(filterTags)){
+					whitelisted = true;
+				} else {
+					_.each(_.keys(jsonItems[itemKeys[cnt]].tags), function(key){
+						if(filterTags.indexOf(key) > -1){
+							whitelisted = true;
+						}
+					});
+				}
+				if(whitelisted){
+					appendItem(itemKeys[cnt], month, day, content, tags);
+				}
 			}
 			loadingMore = false;
 			loadedAll = false;
