@@ -168,7 +168,8 @@ define([
 			month: month,
 			day: day,
 			content: content,
-			tags: tags
+			tags: tags,
+			filterTags: filterTags
 		});
 		$('#items').append(newItemHtml);
 	}
