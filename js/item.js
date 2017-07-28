@@ -14,6 +14,7 @@ define([
 		initializeFirebase();
 		initializeSignInButtonListener();
 		loadItems();
+		initializeFilterListener();
 	});
 
 	function initializeFirebase(){
@@ -56,7 +57,7 @@ define([
 	}
 
 	function initializeFilterListener(){
-		$('.item .tag').click(function(){
+		$('#items').on('click', '.item .tag', function(){
 			// Toggle filter
 			var tagClicked = $(this).html();
 			var indexInFilters = filterTags.indexOf(tagClicked);
@@ -106,7 +107,6 @@ define([
 				}
 			}
 			initializeScrollListener();
-			initializeFilterListener();
 		});
 	}
 
