@@ -4,7 +4,7 @@ body {
 	height: 100%;
 	margin: 0;
 	padding: 0;
-	background: #e0e0e0;
+	background: #fafafa;
 	font-family: 'Quicksand', sans-serif;
 }
 html {
@@ -15,7 +15,7 @@ html {
 	min-width: 50rem;
 	width: 45%;
 	margin: 10rem auto;
-	box-shadow: 1px 1px 4px #000;
+	box-shadow: 0 0 4px #ccc;
 }
 
 #items {
