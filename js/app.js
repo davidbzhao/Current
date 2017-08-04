@@ -19,4 +19,7 @@ require.config({
     }
 });
 
-require(['js/item.js'])
+require([
+    'js/item.js',
+    'js/links.js'
+])
